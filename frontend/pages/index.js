@@ -72,6 +72,7 @@ export default function Home() {
 
   // 页面加载时获取数据
   useEffect(() => {
+    setIsModalVisible(true); // 页面加载时显示弹窗
     fetchExpenses();
     fetchChangExpenses();
     fetchJieExpenses();
