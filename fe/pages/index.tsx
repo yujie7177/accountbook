@@ -4,17 +4,32 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure
 import { Form } from "@nextui-org/form";
 import { Select, SelectItem } from "@nextui-org/select";
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, getKeyValue } from "@nextui-org/table";
+import { DatePicker } from "@nextui-org/date-picker";
+import { CalendarDate, parseDate } from "@internationalized/date";
+import {Input} from "@nextui-org/input";
 
 export default function IndexPage() {
   // 消费品类选项
-  const categories = ['衣服', '化妆品', '电子产品', '家具', '其他'];
+  // const categories = ['衣服', '化妆品', '电子产品', '家具', '其他'];
+  const categories = [{ label: '衣服', key: '衣服' }, { label: '化妆品', key: '化妆品' }, { label: '电子产品', key: '电子产品' }, { label: '家居用品', key: '家居用品' }, { label: '其他', key: '其他' }];
   // 支付方式选项
-  const paymentMethods = ['花呗', '白条', '浦发银行信用卡', '其他'];
+  // const paymentMethods = ['花呗', '白条', '浦发银行信用卡', '其他'];
+  const paymentMethods = [{ label: '花呗', key: '花呗' }, { label: '白条', key: '白条' }, { label: '浦发银行信用卡', key: '浦发银行信用卡' }, { label: '其他', key: '其他' }];
   // 状态管理
-  const [changExpenses, setChangExpenses] = useState<Array<{id:number,amount:number,date:string,category:string,paymentMethod:string,user:string}>>([]); // 畅的花销
-  const [jieExpenses, setJieExpenses] = useState<Array<{id:number,amount:number,date:string,category:string,paymentMethod:string,user:string}>>([]) // 杰的花销
+  const [changExpenses, setChangExpenses] = useState<Array<{ id: number, amount: number, date: string, category: string, paymentMethod: string, user: string }>>([]); // 畅的花销
+  const [jieExpenses, setJieExpenses] = useState<Array<{ id: number, amount: number, date: string, category: string, paymentMethod: string, user: string }>>([]) // 杰的花销
   const { isOpen, onOpen, onClose } = useDisclosure(); // 控制弹窗显示
   const [summaryType, setSummaryType] = useState<any>('category'); // 汇总类型：category 或 paymentMethod
+
+  const getCurrentDate = () => {
+    const date = new Date();
+    const year = date.getFullYear(); // 获取年份（如 2023）
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 获取月份（注意月份从 0 开始，需要 +1）
+    const day = String(date.getDate()).padStart(2, '0'); // 获取日期
+
+    const formattedDate = `${year}-${month}-${day}`;
+    return formattedDate;
+  };
 
   // 获取畅的当月花销记录
   const fetchChangExpenses = async () => {
@@ -76,6 +91,11 @@ export default function IndexPage() {
       console.error('Error adding expense:', error);
     }
   };
+  const onSubmit = (e) => {
+    e.preventDefault();
+
+    const data = Object.fromEntries(new FormData(e.currentTarget));
+  };
   // 计算某个用户在某分类下的总花销
   const getTotalByCategory = (expenses: any[], category: string) => {
     return expenses
@@ -110,18 +130,18 @@ export default function IndexPage() {
     const detailRows =
       summaryType === 'category'
         ? categories.map((category) => ({
-          key: `category-${category}`,
-          type: `${category}`,
-          chang: getTotalByCategory(changExpenses, category),
-          jie: getTotalByCategory(jieExpenses, category),
+          key: `category-${category.key}`,
+          type: `${category.label}`,
+          chang: getTotalByCategory(changExpenses, category.key),
+          jie: getTotalByCategory(jieExpenses, category.key),
           remainingChang: null, // 分类行不需要显示剩余额度
           remainingJie: null,
         }))
         : paymentMethods.map((method) => ({
-          key: `payment-${method}`,
-          type: `${method}`,
-          chang: getTotalByPaymentMethod(changExpenses, method),
-          jie: getTotalByPaymentMethod(jieExpenses, method),
+          key: `payment-${method.key}`,
+          type: `${method.label}`,
+          chang: getTotalByPaymentMethod(changExpenses, method.key),
+          jie: getTotalByPaymentMethod(jieExpenses, method.key),
           remainingChang: null, // 支付方式行不需要显示剩余额度
           remainingJie: null,
         }));
@@ -155,25 +175,37 @@ export default function IndexPage() {
       </div>
 
       {/* 弹窗表单 */}
-      <Modal isOpen={isOpen}>
+      <Modal defaultOpen={true}>
         <ModalContent>
           {
-            <>
-              <ModalHeader>添加花销</ModalHeader>
-              <ModalBody>
-                <Form>
-
-                </Form>
-              </ModalBody>
-              <ModalFooter>
+            (onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">添加花销</ModalHeader>
+                <ModalBody>
+                  <Form onSubmit={onSubmit}>
+                    <DatePicker name="date" isRequired defaultValue={parseDate(getCurrentDate())} className="max-w-[284px]" label="请选择消费日期" />
+                    <Select name="category" isRequired defaultSelectedKeys={["衣服"]} label="请选择消费品类" className="max-w-[284px]" items={categories}>
+                      {(item) => <SelectItem>{item.label}</SelectItem>}
+                    </Select>
+                    <Select name="paymentMethod" isRequired defaultSelectedKeys={["花呗"]} label="请选择支付方式" className="max-w-[284px]" items={paymentMethods}>
+                      {(item) => <SelectItem>{item.label}</SelectItem>}
+                    </Select>
+                    <Input name="amount" isRequired type="number" label="请输入金额" className="max-w-[284px]" />
+                    <Select name="user" isRequired defaultSelectedKeys={["畅"]} label="请选择用户" className="max-w-[284px]" items={[{ label: '畅', key: '畅' }, { label: '杰', key: '杰' }]}>
+                      {(item) => <SelectItem>{item.label}</SelectItem>}
+                    </Select>
+                  </Form>
+                </ModalBody>
+                <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
-                  关闭
+                  Close
                 </Button>
                 <Button color="primary" onPress={onClose}>
-                  提交
+                  Action
                 </Button>
               </ModalFooter>
-            </>
+              </>
+            )
           }
         </ModalContent>
       </Modal>
@@ -217,7 +249,7 @@ export default function IndexPage() {
           </Table>
         </div>
         <div>
-        <Table>
+          <Table>
             <TableHeader columns={detailColumns} >
               {(column: { key: string; label: string; }) => <TableColumn key={column.key}>{column.label}</TableColumn>}
             </TableHeader>
