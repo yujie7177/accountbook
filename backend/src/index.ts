@@ -15,7 +15,7 @@ app.get('/api/expenses', async (c) => {
   const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
 
   const { results } = await c.env.DB.prepare(
-    'SELECT * FROM expenses WHERE date >= ? AND date <= ?'
+    'SELECT * FROM expenses WHERE date >= ? AND date <= ? ORDER BY id DESC'
   )
     .bind(startDate, endDate)
     .all();
@@ -31,7 +31,7 @@ app.get('/api/expenses/chang', async (c) => {
   const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
 
   const { results } = await c.env.DB.prepare(
-    'SELECT * FROM expenses WHERE user = "畅" AND date >= ? AND date <= ?'
+    'SELECT * FROM expenses WHERE user = "畅" AND date >= ? AND date <= ?  ORDER BY id DESC'
   )
     .bind(startDate, endDate)
     .all();
@@ -47,7 +47,7 @@ app.get('/api/expenses/jie', async (c) => {
   const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
 
   const { results } = await c.env.DB.prepare(
-    'SELECT * FROM expenses WHERE user = "杰" AND date >= ? AND date <= ?'
+    'SELECT * FROM expenses WHERE user = "杰" AND date >= ? AND date <= ? ORDER BY id DESC'
   )
     .bind(startDate, endDate)
     .all();

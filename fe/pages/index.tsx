@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from "@nextui-org/button";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/modal";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/modal";
 import { Form } from "@nextui-org/form";
 import { Select, SelectItem } from "@nextui-org/select";
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, getKeyValue } from "@nextui-org/table";
 import { DatePicker } from "@nextui-org/date-picker";
-import { CalendarDate, parseDate } from "@internationalized/date";
+import { parseDate } from "@internationalized/date";
 import { Input } from "@nextui-org/input";
-import { Pagination, PaginationItem, PaginationCursor } from "@nextui-org/pagination";
+import { Pagination } from "@nextui-org/pagination";
 
 export default function IndexPage() {
   // 消费品类选项
@@ -21,7 +21,7 @@ export default function IndexPage() {
   const [pageChang, setPageChang] = useState(1);
   const [pageJie, setPageJie] = useState(1);
   // 每页显示数据条数
-  const rowsPerPage = 4;
+  const rowsPerPage = 3;
   const onOpen = () => {
     setIsOpen(true)
   };
@@ -310,7 +310,7 @@ export default function IndexPage() {
                 color="secondary"
                 page={pageJie}
                 total={pagesJie}
-                onChange={(pageJie) => setPageChang(pageJie)}
+                onChange={(pageJie) => setPageJie(pageJie)}
               />
             </div>
           }>
