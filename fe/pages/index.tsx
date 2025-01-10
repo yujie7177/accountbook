@@ -28,7 +28,7 @@ export default function IndexPage() {
   const onClose = () => {
     setIsOpen(false)
   };
-  const [summaryType, setSummaryType] = useState<any>('category'); // 汇总类型：category 或 paymentMethod
+  const [summaryType, setSummaryType] = useState<any>('paymentMethod'); // 汇总类型：category 或 paymentMethod
 
   // 获取当前日期
   const getCurrentDate = () => {
