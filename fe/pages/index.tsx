@@ -103,16 +103,16 @@ export default function IndexPage() {
 
   // 计算某个用户在某分类下的总花销
   const getTotalByCategory = (expenses: any[], category: string) => {
-    return expenses
+    return Number(expenses
       .filter((expense) => expense.category === category)
-      .reduce((sum, expense) => sum + expense.amount, 0);
+      .reduce((sum, expense) => sum + expense.amount, 0).toFixed(2));
   };
 
   // 计算某个用户在某支付方式下的总花销
   const getTotalByPaymentMethod = (expenses: any[], method: string) => {
-    return expenses
+    return Number(expenses
       .filter((expense) => expense.paymentMethod === method)
-      .reduce((sum, expense) => sum + expense.amount, 0);
+      .reduce((sum, expense) => sum + expense.amount, 0).toFixed(2));
   };
 
   // 根据汇总类型生成汇总数据
@@ -128,14 +128,14 @@ export default function IndexPage() {
     const summaryDataChangHeader: SummaryData = {
       key: 'chang',
       users: '畅',
-      totalExpenses: totalChang,
-      remainingAmount: 1500 - totalChang
+      totalExpenses: Number(totalChang.toFixed(2)),
+      remainingAmount: 1500 - Number(totalChang.toFixed(2))
     };
     const summaryDataJieHeader: SummaryData = {
       key: 'jie',
       users: '杰  ',
-      totalExpenses: totalJie,
-      remainingAmount: 1000 - totalJie
+      totalExpenses: Number(totalJie.toFixed(2)),
+      remainingAmount: 1000 - Number(totalJie.toFixed(2))
     };
     const summaryDataChangBodyCategory: SummaryData = {}
     const summaryDataChangBodyPaymentMethod: SummaryData = {}
