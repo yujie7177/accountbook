@@ -135,7 +135,7 @@ export default function IndexPage() {
       key: 'jie',
       users: '杰  ',
       totalExpenses: totalJie,
-      remainingAmount: 1500 - totalChang
+      remainingAmount: 1000 - totalChang
     };
     const summaryDataChangBodyCategory: SummaryData = {}
     const summaryDataChangBodyPaymentMethod: SummaryData = {}
