@@ -249,7 +249,7 @@ export default function IndexPage() {
       {/* 汇总部分 */}
       <div style={{ marginBottom: '20px' }}>
         <div style={{ marginBottom: '10px' }}>
-          <Select className="max-w-[16rem] md:max-w-xs" label="选择汇总方式" defaultSelectedKeys={["category"]} onSelectionChange={(selectedKeys) => setSummaryType(selectedKeys['currentKey'])}>
+          <Select className="max-w-[16rem] md:max-w-xs" label="选择汇总方式" defaultSelectedKeys={["paymentMethod"]} onSelectionChange={(selectedKeys) => setSummaryType(selectedKeys['currentKey'])}>
             <SelectItem key="category">按消费品类汇总</SelectItem>
             <SelectItem key="paymentMethod">按支付方式汇总</SelectItem>
           </Select>
