@@ -1,4 +1,4 @@
-import { useState, useEffect, AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
+import { useState, useEffect, useMemo, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { Button } from "@nextui-org/button";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/modal";
 import { Form } from "@nextui-org/form";
@@ -7,19 +7,21 @@ import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, getKey
 import { DatePicker } from "@nextui-org/date-picker";
 import { CalendarDate, parseDate } from "@internationalized/date";
 import { Input } from "@nextui-org/input";
+import { Pagination, PaginationItem, PaginationCursor } from "@nextui-org/pagination";
 
 export default function IndexPage() {
   // 消费品类选项
-  // const categories = ['衣服', '化妆品', '电子产品', '家具', '其他'];
   const categories = [{ label: '衣服', key: '衣服' }, { label: '化妆品', key: '化妆品' }, { label: '电子产品', key: '电子产品' }, { label: '家居用品', key: '家居用品' }, { label: '其他', key: '其他' }];
   // 支付方式选项
-  // const paymentMethods = ['花呗', '白条', '浦发银行信用卡', '其他'];
-  const paymentMethods = [{ label: '花呗', key: '花呗' }, { label: '白条', key: '白条' }, { label: '浦发银行信用卡', key: '浦发银行信用卡' }, { label: '其他', key: '其他' }];
+  const paymentMethods = [{ label: '花呗', key: '花呗' }, { label: '白条', key: '白条' }, { label: '浦发信用卡', key: '浦发信用卡' }, { label: '其他', key: '其他' }];
   // 状态管理
   const [changExpenses, setChangExpenses] = useState<Array<{ id: number, amount: number, date: string, category: string, paymentMethod: string, user: string }>>([]); // 畅的花销
   const [jieExpenses, setJieExpenses] = useState<Array<{ id: number, amount: number, date: string, category: string, paymentMethod: string, user: string }>>([]); // 杰的花销
-  // const { isOpen, onOpen} = useDisclosure(); // 控制弹窗显示
   const [isOpen, setIsOpen] = useState(true)
+  const [pageChang, setPageChang] = useState(1);
+  const [pageJie, setPageJie] = useState(1);
+  // 每页显示数据条数
+  const rowsPerPage = 4;
   const onOpen = () => {
     setIsOpen(true)
   };
@@ -153,12 +155,12 @@ export default function IndexPage() {
     });
     const summaryDataChang =
       summaryType === 'category'
-        ? {...summaryDataChangHeader,...summaryDataChangBodyCategory}
-        : {...summaryDataChangHeader,...summaryDataChangBodyPaymentMethod}
-    const summaryDataJie = 
+        ? { ...summaryDataChangHeader, ...summaryDataChangBodyCategory }
+        : { ...summaryDataChangHeader, ...summaryDataChangBodyPaymentMethod }
+    const summaryDataJie =
       summaryType === 'category'
-        ? {...summaryDataJieHeader,...summaryDataJieBodyCategory}
-        : {...summaryDataJieHeader,...summaryDataJieBodyPaymentMethod}
+        ? { ...summaryDataJieHeader, ...summaryDataJieBodyCategory }
+        : { ...summaryDataJieHeader, ...summaryDataJieBodyPaymentMethod }
 
     return [summaryDataChang, summaryDataJie]
   };
@@ -186,13 +188,29 @@ export default function IndexPage() {
     { label: '用户', key: 'user' }, // 显示用户名称
   ];
 
+  // 控制翻页
+  const pagesJie = Math.ceil(jieExpenses.length / rowsPerPage);
+  const pagesChang = Math.ceil(changExpenses.length / rowsPerPage);
+  const itemsJie = useMemo(() => {
+    const start = (pageJie - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return jieExpenses.slice(start, end);
+  }, [pageJie, jieExpenses]);
+  const itemsChang = useMemo(() => {
+    const start = (pageChang - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return changExpenses.slice(start, end);
+  }, [pageChang, changExpenses]);
+
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
 
-      {/* 添加数据按钮 */}
-      <div style={{ textAlign: 'right', marginBottom: '20px' }}>
+
+      {/* <div style={{ textAlign: 'right', marginBottom: '20px' }}>
         <Button color="primary" onPress={onOpen}>添加数据</Button>
-      </div>
+      </div> */}
 
       {/* 弹窗表单 */}
       <Modal isOpen={isOpen} hideCloseButton={true}>
@@ -233,10 +251,12 @@ export default function IndexPage() {
       {/* 汇总部分 */}
       <div style={{ marginBottom: '20px' }}>
         <div style={{ marginBottom: '10px' }}>
-          <Select className="max-w-xs" label="选择汇总方式" defaultSelectedKeys={["category"]} onSelectionChange={(selectedKeys) => setSummaryType(selectedKeys['currentKey'])}>
+          <Select className="max-w-[16rem] md:max-w-xs" label="选择汇总方式" defaultSelectedKeys={["category"]} onSelectionChange={(selectedKeys) => setSummaryType(selectedKeys['currentKey'])}>
             <SelectItem key="category">按消费品类汇总</SelectItem>
             <SelectItem key="paymentMethod">按支付方式汇总</SelectItem>
           </Select>
+          {/* 添加数据按钮 */}
+          <Button color="primary" onPress={onOpen} className='float-right'>添加数据</Button>
         </div>
         <Table>
           <TableHeader columns={getSummaryColumns()} >
@@ -253,13 +273,25 @@ export default function IndexPage() {
       </div>
 
       {/* 中部：畅和杰的花销明细 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Table>
+          <Table bottomContent={
+            <div className="flex w-full justify-center">
+              <Pagination
+                isCompact
+                showControls
+                showShadow
+                color="secondary"
+                page={pageChang}
+                total={pagesChang}
+                onChange={(pageChang) => setPageChang(pageChang)}
+              />
+            </div>
+          }>
             <TableHeader columns={detailColumns} >
               {(column: { key: string; label: string; }) => <TableColumn key={column.key}>{column.label}</TableColumn>}
             </TableHeader>
-            <TableBody emptyContent={"No rows to display."} items={changExpenses}>
+            <TableBody emptyContent={"No rows to display."} items={itemsChang}>
               {(item) => (
                 <TableRow key={item.id}>
                   {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
@@ -269,11 +301,23 @@ export default function IndexPage() {
           </Table>
         </div>
         <div>
-          <Table>
+          <Table bottomContent={
+            <div className="flex w-full justify-center">
+              <Pagination
+                isCompact
+                showControls
+                showShadow
+                color="secondary"
+                page={pageJie}
+                total={pagesJie}
+                onChange={(pageJie) => setPageChang(pageJie)}
+              />
+            </div>
+          }>
             <TableHeader columns={detailColumns} >
               {(column: { key: string; label: string; }) => <TableColumn key={column.key}>{column.label}</TableColumn>}
             </TableHeader>
-            <TableBody emptyContent={"No rows to display."} items={jieExpenses}>
+            <TableBody emptyContent={"No rows to display."} items={itemsJie}>
               {(item) => (
                 <TableRow key={item.id}>
                   {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
