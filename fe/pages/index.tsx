@@ -28,12 +28,12 @@ export default function IndexPage() {
   };
   const [summaryType, setSummaryType] = useState<any>('category'); // 汇总类型：category 或 paymentMethod
 
+  // 获取当前日期
   const getCurrentDate = () => {
     const date = new Date();
     const year = date.getFullYear(); // 获取年份（如 2023）
     const month = String(date.getMonth() + 1).padStart(2, '0'); // 获取月份（注意月份从 0 开始，需要 +1）
     const day = String(date.getDate()).padStart(2, '0'); // 获取日期
-
     const formattedDate = `${year}-${month}-${day}`;
     return formattedDate;
   };
@@ -94,8 +94,6 @@ export default function IndexPage() {
       fetchChangExpenses();
       fetchJieExpenses();
 
-      // 关闭弹窗
-      // setIsModalVisible(false);
     } catch (error) {
       console.error('Error adding expense:', error);
     }
@@ -121,46 +119,63 @@ export default function IndexPage() {
     const totalChang = changExpenses.reduce((sum: any, e: { amount: any; }) => sum + e.amount, 0);
     const totalJie = jieExpenses.reduce((sum: any, e: { amount: any; }) => sum + e.amount, 0);
 
-    // 总花销行
-    const totalRow = {
-      key: 'total',
-      type: '总花销',
-      chang: totalChang,
-      jie: totalJie,
-      remainingChang: 1500 - totalChang, // 畅的剩余额度
-      remainingJie: 1000 - totalJie, // 杰的剩余额度
+    interface SummaryData {
+      [key: string]: any; // 索引签名，表示可以接受任意字符串作为属性名
+    }
+
+    const summaryDataChangHeader: SummaryData = {
+      key: 'chang',
+      users: '畅',
+      totalExpenses: totalChang,
+      remainingAmount: 1500 - totalChang
     };
-
-    // 分类或支付方式汇总行
-    const detailRows =
+    const summaryDataJieHeader: SummaryData = {
+      key: 'jie',
+      users: '杰  ',
+      totalExpenses: totalJie,
+      remainingAmount: 1500 - totalChang
+    };
+    const summaryDataChangBodyCategory: SummaryData = {}
+    const summaryDataChangBodyPaymentMethod: SummaryData = {}
+    categories.forEach(e => {
+      summaryDataChangBodyCategory[e.key] = getTotalByCategory(changExpenses, e.key)
+    });
+    paymentMethods.forEach(e => {
+      summaryDataChangBodyPaymentMethod[e.key] = getTotalByPaymentMethod(changExpenses, e.key)
+    });
+    const summaryDataJieBodyCategory: SummaryData = {}
+    const summaryDataJieBodyPaymentMethod: SummaryData = {}
+    categories.forEach(e => {
+      summaryDataJieBodyCategory[e.key] = getTotalByCategory(jieExpenses, e.key)
+    });
+    paymentMethods.forEach(e => {
+      summaryDataJieBodyPaymentMethod[e.key] = getTotalByPaymentMethod(jieExpenses, e.key)
+    });
+    const summaryDataChang =
       summaryType === 'category'
-        ? categories.map((category) => ({
-          key: `category-${category.key}`,
-          type: `${category.label}`,
-          chang: getTotalByCategory(changExpenses, category.key),
-          jie: getTotalByCategory(jieExpenses, category.key),
-          remainingChang: null, // 分类行不需要显示剩余额度
-          remainingJie: null,
-        }))
-        : paymentMethods.map((method) => ({
-          key: `payment-${method.key}`,
-          type: `${method.label}`,
-          chang: getTotalByPaymentMethod(changExpenses, method.key),
-          jie: getTotalByPaymentMethod(jieExpenses, method.key),
-          remainingChang: null, // 支付方式行不需要显示剩余额度
-          remainingJie: null,
-        }));
+        ? {...summaryDataChangHeader,...summaryDataChangBodyCategory}
+        : {...summaryDataChangHeader,...summaryDataChangBodyPaymentMethod}
+    const summaryDataJie = 
+      summaryType === 'category'
+        ? {...summaryDataJieHeader,...summaryDataJieBodyCategory}
+        : {...summaryDataJieHeader,...summaryDataJieBodyPaymentMethod}
 
-    return [totalRow, ...detailRows];
+    return [summaryDataChang, summaryDataJie]
   };
 
-  const summaryColumns = [
-    { key: "type", label: "分类" },
-    { key: "chang", label: "畅总花销" },
-    { key: "remainingChang", label: "畅剩余额度" },
-    { key: "jie", label: "杰总花销" },
-    { key: "remainingJie", label: "杰剩余额度" }
-  ]
+  //汇总表格定义
+  const getSummaryColumns = () => {
+    const summaryColumnsHeader = [
+      { key: "users", label: "用户" },
+      { key: "totalExpenses", label: "总花销" },
+      { key: "remainingAmount", label: "剩余额度" },
+    ];
+    const summaryColumns =
+      summaryType === 'category'
+        ? ([...summaryColumnsHeader, ...categories])
+        : ([...summaryColumnsHeader, ...paymentMethods])
+    return summaryColumns
+  };
 
   // 花销明细表格列定义
   const detailColumns = [
@@ -181,11 +196,11 @@ export default function IndexPage() {
 
       {/* 弹窗表单 */}
       <Modal isOpen={isOpen} hideCloseButton={true}>
-        <ModalContent>
-          {
-            // (onClose) => (
-            <>
-              <Form onSubmit={addExpense}>
+        <Form onSubmit={addExpense}>
+          <ModalContent>
+            {
+              // (onClose) => (
+              <>
                 <ModalHeader className="flex flex-col gap-1">添加花销</ModalHeader>
                 <ModalBody>
                   <DatePicker name="date" isRequired defaultValue={parseDate(getCurrentDate())} className="max-w-[284px]" label="请选择消费日期" />
@@ -208,11 +223,11 @@ export default function IndexPage() {
                     添加
                   </Button>
                 </ModalFooter>
-              </Form>
-            </>
-            // )
-          }
-        </ModalContent>
+              </>
+              // )
+            }
+          </ModalContent>
+        </Form>
       </Modal>
 
       {/* 汇总部分 */}
@@ -224,7 +239,7 @@ export default function IndexPage() {
           </Select>
         </div>
         <Table>
-          <TableHeader columns={summaryColumns} >
+          <TableHeader columns={getSummaryColumns()} >
             {(column: { key: string; label: string; }) => <TableColumn key={column.key}>{column.label}</TableColumn>}
           </TableHeader>
           <TableBody emptyContent={"No rows to display."} items={getSummaryData()}>
