@@ -195,7 +195,7 @@ export default function IndexPage() {
     const startJie = (pageJie - 1) * rowsPerPage;
     const endJie = startJie + rowsPerPage;
     return jieExpenses.slice(startJie, endJie);
-}, [pageJie, jieExpenses]);
+  }, [pageJie, jieExpenses]);
   const itemsChang = useMemo(() => {
     const startChang = (pageChang - 1) * rowsPerPage;
     const endChang = startChang + rowsPerPage;
@@ -212,7 +212,7 @@ export default function IndexPage() {
 
       {/* 弹窗表单 */}
       <Modal isOpen={isOpen} hideCloseButton={true}>
-        <Form onSubmit={addExpense}>
+        <Form onSubmit={addExpense} validationBehavior="native">
           <ModalContent>
             {
               // (onClose) => (
@@ -280,7 +280,7 @@ export default function IndexPage() {
                 showControls
                 showShadow
                 color="secondary"
-                initialPage = {1}
+                initialPage={1}
                 page={pageChang}
                 total={pagesChang}
                 onChange={(pageChang) => setPageChang(pageChang)}
@@ -307,7 +307,7 @@ export default function IndexPage() {
                 showControls
                 showShadow
                 color="secondary"
-                initialPage = {1}
+                initialPage={1}
                 page={pageJie}
                 total={pagesJie}
                 onChange={(pageJie) => setPageJie(pageJie)}
