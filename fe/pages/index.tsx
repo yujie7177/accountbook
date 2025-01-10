@@ -6,7 +6,7 @@ import { Select, SelectItem } from "@nextui-org/select";
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, getKeyValue } from "@nextui-org/table";
 import { DatePicker } from "@nextui-org/date-picker";
 import { CalendarDate, parseDate } from "@internationalized/date";
-import {Input} from "@nextui-org/input";
+import { Input } from "@nextui-org/input";
 
 export default function IndexPage() {
   // 消费品类选项
@@ -17,8 +17,15 @@ export default function IndexPage() {
   const paymentMethods = [{ label: '花呗', key: '花呗' }, { label: '白条', key: '白条' }, { label: '浦发银行信用卡', key: '浦发银行信用卡' }, { label: '其他', key: '其他' }];
   // 状态管理
   const [changExpenses, setChangExpenses] = useState<Array<{ id: number, amount: number, date: string, category: string, paymentMethod: string, user: string }>>([]); // 畅的花销
-  const [jieExpenses, setJieExpenses] = useState<Array<{ id: number, amount: number, date: string, category: string, paymentMethod: string, user: string }>>([]) // 杰的花销
-  const { isOpen, onOpen, onClose } = useDisclosure(); // 控制弹窗显示
+  const [jieExpenses, setJieExpenses] = useState<Array<{ id: number, amount: number, date: string, category: string, paymentMethod: string, user: string }>>([]); // 杰的花销
+  // const { isOpen, onOpen} = useDisclosure(); // 控制弹窗显示
+  const [isOpen, setIsOpen] = useState(true)
+  const onOpen = () => {
+    setIsOpen(true)
+  };
+  const onClose = () => {
+    setIsOpen(false)
+  };
   const [summaryType, setSummaryType] = useState<any>('category'); // 汇总类型：category 或 paymentMethod
 
   const getCurrentDate = () => {
@@ -61,18 +68,20 @@ export default function IndexPage() {
     fetchJieExpenses();
   }, []);
   // 添加花销
-  const addExpense = async (values: { date: { format: (arg0: string) => any; }; category: any; paymentMethod: any; amount: string; user: any; }) => {
+  const addExpense = async (e: { preventDefault: () => void; currentTarget: HTMLFormElement | undefined; }) => {
     try {
+      e.preventDefault();
+      const values = Object.fromEntries(new FormData(e.currentTarget));
       const response = await fetch(`https://account-book.post.jieyuu.us.kg/api/expenses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          date: values.date.format('YYYY-MM-DD'),
+          date: values.date,
           category: values.category,
           paymentMethod: values.paymentMethod,
-          amount: parseFloat(values.amount),
+          amount: values.amount,
           user: values.user,
         }),
       });
@@ -91,11 +100,7 @@ export default function IndexPage() {
       console.error('Error adding expense:', error);
     }
   };
-  const onSubmit = (e) => {
-    e.preventDefault();
 
-    const data = Object.fromEntries(new FormData(e.currentTarget));
-  };
   // 计算某个用户在某分类下的总花销
   const getTotalByCategory = (expenses: any[], category: string) => {
     return expenses
@@ -175,37 +180,37 @@ export default function IndexPage() {
       </div>
 
       {/* 弹窗表单 */}
-      <Modal defaultOpen={true}>
+      <Modal isOpen={isOpen} hideCloseButton={true}>
         <ModalContent>
           {
-            (onClose) => (
-              <>
+            // (onClose) => (
+            <>
+              <Form onSubmit={addExpense}>
                 <ModalHeader className="flex flex-col gap-1">添加花销</ModalHeader>
                 <ModalBody>
-                  <Form onSubmit={onSubmit}>
-                    <DatePicker name="date" isRequired defaultValue={parseDate(getCurrentDate())} className="max-w-[284px]" label="请选择消费日期" />
-                    <Select name="category" isRequired defaultSelectedKeys={["衣服"]} label="请选择消费品类" className="max-w-[284px]" items={categories}>
-                      {(item) => <SelectItem>{item.label}</SelectItem>}
-                    </Select>
-                    <Select name="paymentMethod" isRequired defaultSelectedKeys={["花呗"]} label="请选择支付方式" className="max-w-[284px]" items={paymentMethods}>
-                      {(item) => <SelectItem>{item.label}</SelectItem>}
-                    </Select>
-                    <Input name="amount" isRequired type="number" label="请输入金额" className="max-w-[284px]" />
-                    <Select name="user" isRequired defaultSelectedKeys={["畅"]} label="请选择用户" className="max-w-[284px]" items={[{ label: '畅', key: '畅' }, { label: '杰', key: '杰' }]}>
-                      {(item) => <SelectItem>{item.label}</SelectItem>}
-                    </Select>
-                  </Form>
+                  <DatePicker name="date" isRequired defaultValue={parseDate(getCurrentDate())} className="max-w-[284px]" label="请选择消费日期" />
+                  <Select name="category" isRequired defaultSelectedKeys={["衣服"]} label="请选择消费品类" className="max-w-[284px]" items={categories}>
+                    {(item) => <SelectItem>{item.label}</SelectItem>}
+                  </Select>
+                  <Select name="paymentMethod" isRequired defaultSelectedKeys={["花呗"]} label="请选择支付方式" className="max-w-[284px]" items={paymentMethods}>
+                    {(item) => <SelectItem>{item.label}</SelectItem>}
+                  </Select>
+                  <Input name="amount" isRequired type="number" label="请输入金额" className="max-w-[284px]" />
+                  <Select name="user" isRequired defaultSelectedKeys={["畅"]} label="请选择用户" className="max-w-[284px]" items={[{ label: '畅', key: '畅' }, { label: '杰', key: '杰' }]}>
+                    {(item) => <SelectItem>{item.label}</SelectItem>}
+                  </Select>
                 </ModalBody>
                 <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-                <Button color="primary" onPress={onClose}>
-                  Action
-                </Button>
-              </ModalFooter>
-              </>
-            )
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    关闭
+                  </Button>
+                  <Button type='submit' color="primary" onPress={onClose}>
+                    添加
+                  </Button>
+                </ModalFooter>
+              </Form>
+            </>
+            // )
           }
         </ModalContent>
       </Modal>
