@@ -21,7 +21,7 @@ export default function IndexPage() {
   const [pageChang, setPageChang] = useState(1);
   const [pageJie, setPageJie] = useState(1);
   // 每页显示数据条数
-  const rowsPerPage = 3;
+  const rowsPerPage = 5;
   const onOpen = () => {
     setIsOpen(true)
   };
@@ -192,16 +192,14 @@ export default function IndexPage() {
   const pagesJie = Math.ceil(jieExpenses.length / rowsPerPage);
   const pagesChang = Math.ceil(changExpenses.length / rowsPerPage);
   const itemsJie = useMemo(() => {
-    const start = (pageJie - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    return jieExpenses.slice(start, end);
-  }, [pageJie, jieExpenses]);
+    const startJie = (pageJie - 1) * rowsPerPage;
+    const endJie = startJie + rowsPerPage;
+    return jieExpenses.slice(startJie, endJie);
+}, [pageJie, jieExpenses]);
   const itemsChang = useMemo(() => {
-    const start = (pageChang - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    return changExpenses.slice(start, end);
+    const startChang = (pageChang - 1) * rowsPerPage;
+    const endChang = startChang + rowsPerPage;
+    return changExpenses.slice(startChang, endChang);
   }, [pageChang, changExpenses]);
 
   return (
@@ -282,6 +280,7 @@ export default function IndexPage() {
                 showControls
                 showShadow
                 color="secondary"
+                initialPage = {1}
                 page={pageChang}
                 total={pagesChang}
                 onChange={(pageChang) => setPageChang(pageChang)}
@@ -308,6 +307,7 @@ export default function IndexPage() {
                 showControls
                 showShadow
                 color="secondary"
+                initialPage = {1}
                 page={pageJie}
                 total={pagesJie}
                 onChange={(pageJie) => setPageJie(pageJie)}
